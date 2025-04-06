@@ -93,136 +93,128 @@ services:
               - IOT_Network
 
 
- vib-accel-monitor-03:
-       container_name: VibAccelMonitor03
-       image: vib_anomaly_detect_3std_dev_img:0.0.1
-       restart: always
-       volumes:
-              - "/etc/timezone:/etc/timezone:ro"
-              - "/etc/localtime:/etc/localtime:ro"
-       env_file:
-              - ./mqtt_settings.env
-              - ./influxdb_settings.env
-       environment:
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
-              THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
-              LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "device01"                                                        # Must be hard coded
-              SENSOR_NAME: "Vib3"                                                             # Must be hard coded     
+#  vib-accel-monitor-03:
+#        container_name: VibAccelMonitor03
+#        image: vib_anomaly_detect_3std_dev_img:0.0.1
+#        restart: always
+#        volumes:
+#               - "/etc/timezone:/etc/timezone:ro"
+#               - "/etc/localtime:/etc/localtime:ro"
+#        env_file:
+#               - ./mqtt_settings.env
+#               - ./influxdb_settings.env
+#        environment:
+#               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+#               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+#               THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
+#               LINE_NAME: ${LINE_NAME}
+#               MACHINE_NAME: "device01"                                                        # Must be hard coded
+#               SENSOR_NAME: "Vib3"                                                             # Must be hard coded     
 
-       labels:
-              IoT.container.project: "IoT_Industrial"
-       networks:
-              - IOT_Network
-
-
- vib-accel-monitor-04:
-       container_name: VibAccelMonitor04
-       image: vib_anomaly_detect_3std_dev_img:0.0.1
-       restart: always
-       volumes:
-              - "/etc/timezone:/etc/timezone:ro"
-              - "/etc/localtime:/etc/localtime:ro"
-       env_file:
-              - ./mqtt_settings.env
-              - ./influxdb_settings.env
-       environment:
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
-              THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
-              LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "device01"                                                        # Must be hard coded
-              SENSOR_NAME: "Vib4"                                                             # Must be hard coded     
-
-       labels:
-              IoT.container.project: "IoT_Industrial"
-       networks:
-              - IOT_Network
+#        labels:
+#               IoT.container.project: "IoT_Industrial"
+#        networks:
+#               - IOT_Network
 
 
- vib-accel-monitor-05:
-       container_name: VibAccelMonitor05
-       image: vib_anomaly_detect_3std_dev_img:0.0.1
-       restart: always
-       volumes:
-              - "/etc/timezone:/etc/timezone:ro"
-              - "/etc/localtime:/etc/localtime:ro"
-       env_file:
-              - ./mqtt_settings.env
-              - ./influxdb_settings.env
-       environment:
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
-              THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
-              LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "device01"                                                        # Must be hard coded
-              SENSOR_NAME: "Vib5"                                                             # Must be hard coded     
+#  vib-accel-monitor-04:
+#        container_name: VibAccelMonitor04
+#        image: vib_anomaly_detect_3std_dev_img:0.0.1
+#        restart: always
+#        volumes:
+#               - "/etc/timezone:/etc/timezone:ro"
+#               - "/etc/localtime:/etc/localtime:ro"
+#        env_file:
+#               - ./mqtt_settings.env
+#               - ./influxdb_settings.env
+#        environment:
+#               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+#               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+#               THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
+#               LINE_NAME: ${LINE_NAME}
+#               MACHINE_NAME: "device01"                                                        # Must be hard coded
+#               SENSOR_NAME: "Vib4"                                                             # Must be hard coded     
 
-       labels:
-              IoT.container.project: "IoT_Industrial"
-       networks:
-              - IOT_Network
+#        labels:
+#               IoT.container.project: "IoT_Industrial"
+#        networks:
+#               - IOT_Network
 
 
- vib-accel-monitor-06:
-       container_name: VibAccelMonitor06
-       image: vib_anomaly_detect_3std_dev_img:0.0.1
-       restart: always
-       volumes:
-              - "/etc/timezone:/etc/timezone:ro"
-              - "/etc/localtime:/etc/localtime:ro"
-       env_file:
-              - ./mqtt_settings.env
-              - ./influxdb_settings.env
-       environment:
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
-              THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
-              LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "device01"                                                        # Must be hard coded
-              SENSOR_NAME: "Vib6"                                                             # Must be hard coded     
+#  vib-accel-monitor-05:
+#        container_name: VibAccelMonitor05
+#        image: vib_anomaly_detect_3std_dev_img:0.0.1
+#        restart: always
+#        volumes:
+#               - "/etc/timezone:/etc/timezone:ro"
+#               - "/etc/localtime:/etc/localtime:ro"
+#        env_file:
+#               - ./mqtt_settings.env
+#               - ./influxdb_settings.env
+#        environment:
+#               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+#               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+#               THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
+#               LINE_NAME: ${LINE_NAME}
+#               MACHINE_NAME: "device01"                                                        # Must be hard coded
+#               SENSOR_NAME: "Vib5"                                                             # Must be hard coded     
 
-       labels:
-              IoT.container.project: "IoT_Industrial"
-       networks:
-              - IOT_Network
+#        labels:
+#               IoT.container.project: "IoT_Industrial"
+#        networks:
+#               - IOT_Network
+
+
+#  vib-accel-monitor-06:
+#        container_name: VibAccelMonitor06
+#        image: vib_anomaly_detect_3std_dev_img:0.0.1
+#        restart: always
+#        volumes:
+#               - "/etc/timezone:/etc/timezone:ro"
+#               - "/etc/localtime:/etc/localtime:ro"
+#        env_file:
+#               - ./mqtt_settings.env
+#               - ./influxdb_settings.env
+#        environment:
+#               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+#               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+#               THRESH_STD_LIMIT: ${THRESH_STD_LIMIT}                                               
+#               LINE_NAME: ${LINE_NAME}
+#               MACHINE_NAME: "device01"                                                        # Must be hard coded
+#               SENSOR_NAME: "Vib6"                                                             # Must be hard coded     
+
+#        labels:
+#               IoT.container.project: "IoT_Industrial"
+#        networks:
+#               - IOT_Network
 
 
 
 # ===== Vibration acceleration z-score monitoring ====
 
-#  vib-accel-monitor-05:
-#        container_name: VibAccelMonitorZScore01
-#        image: vib_accel_monitor_z_score_img:0.0.1
-#        restart: always
-#        #volumes:
-#               #- "/etc/timezone:/etc/timezone:ro"
-#               #- "/etc/localtime:/etc/localtime:ro"
-#        environment:
-#               MQTT_USERNAME: ${MQTT_USERNAME}
-#               MQTT_PASSWORD: ${MQTT_PASSWORD}
-#               MQTT_HOST: ${MQTT_HOST}
-#               MQTT_PORT: ${MQTT_PORT}
-#               MQTT_QOS: ${MQTT_QOS}
-#               INFLUX_HOST: ${INFLUX_HOST}
-#               INFLUX_PORT: ${INFLUX_PORT} 
-#               INFLUX_ORG: ${INFLUX_ORG}
-#               INFLUX_TOKEN: ${INFLUX_TOKEN}
-#               INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
-#               INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
-#               INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
-#               INFLUX_PROCESS_DB: ${INFLUX_PROCESS_DB}
-#               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-#               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
-#               LINE_NAME: ${LINE_NAME}
-#               MACHINE_NAME: "device01"                                                            #Warrning ! Must be hard coded
-#               SENSOR_NAME: "Vib5"                                                                 #Warrning ! Must be hard coded     
-#               Z_SCORE_THRESHOLD: 2.5                                                              #Warrning ! Must be hard coded
-#        labels:
-#               IoT.container.project: "IoT_Industrial"
-#        networks:
-#               - IOT_Network
+ vib-accel-monitor03:
+       container_name: VibAccelMonitor03
+       image: vib_anomaly_detect_z_score_img:0.0.1
+       restart: always
+       volumes:
+              - "/etc/timezone:/etc/timezone:ro"
+              - "/etc/localtime:/etc/localtime:ro"
+       env_file:
+              - ./mqtt_settings.env
+              - ./influxdb_settings.env
+       environment:
+              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+              Z_SCORE_THRESHOLD: 2.1                                                              #Warrning ! Must be hard coded
+
+              LINE_NAME: ${LINE_NAME}
+              MACHINE_NAME: "device01"                                                            #Warrning ! Must be hard coded
+              SENSOR_NAME: "Vib3"                                                                 #Warrning ! Must be hard coded     
+
+       labels:
+              IoT.container.project: "IoT_Industrial"
+       networks:
+              - IOT_Network
 
 
 # ===== Air valve monitoring  ====
@@ -319,40 +311,30 @@ services:
               - IOT_Network
 
 
+# ===== Electrical anomaly analytics for one device====
 
-# =========== Temperature, humidity monitoring container 01 =====
- TempHumid-monitor:
-       container_name: TempHumidMonitor01
-       image: temp_humid_monitor_img:0.0.1
+ electrical-analytics1:
+       container_name: ElecDevice1
+       image: electrical_analytics_img:0.0.1
        restart: always
-       # volumes:
-       #        - "/etc/timezone:/etc/timezone:ro"
-       #        - "/etc/localtime:/etc/localtime:ro"
+       volumes:
+              - "/etc/timezone:/etc/timezone:ro"
+              - "/etc/localtime:/etc/localtime:ro"
+       env_file:
+              - ./mqtt_settings.env
+              - ./influxdb_settings.env
        environment:
-              MQTT_USERNAME: ${MQTT_USERNAME}
-              MQTT_PASSWORD: ${MQTT_PASSWORD}
-              MQTT_HOST: ${MQTT_HOST}
-              MQTT_PORT: ${MQTT_PORT}
-              MQTT_QOS: ${MQTT_QOS}
-              INFLUX_HOST: ${INFLUX_HOST}
-              INFLUX_PORT: ${INFLUX_PORT} 
-              INFLUX_ORG: ${INFLUX_ORG}
-              INFLUX_TOKEN: ${INFLUX_TOKEN}
-              INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
-              INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
-              INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
-              INFLUX_PROCESS_DB: ${INFLUX_PROCESS_DB}
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
               LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "device01"                                              #Warrning ! Must be hard coded
-              SENSOR_NAME: "TempHumid1"                                             #Warrning ! Must be hard coded
-          
+              MACHINE_NAME: "device01"   
+              DEVICE_NAME : "ElecDevice1"                                          
        labels:
               IoT.container.project: "IoT_Industrial"
-
+              
        networks:
               - IOT_Network
+
+
+
             
  
 # ===== NETWORK CONFIG ================

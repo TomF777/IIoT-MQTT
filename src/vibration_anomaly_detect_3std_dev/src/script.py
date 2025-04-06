@@ -100,7 +100,7 @@ LOGGER.info(f"MQTT_TOPIC value is: {MQTT_TOPIC} ")
 
 INFLUX_HOST = get_para("INFLUX_HOST", str)
 INFLUX_PORT = get_para("INFLUX_PORT", str)
-INFLUX_PROCESS_DB = get_para("INFLUX_PROCESS_DB", str)
+INFLUX_BUCKET_NAME = get_para("INFLUX_BUCKET_NAME", str)
 INFLUX_BATCH_SIZE = get_para("INFLUX_BATCH_SIZE", int)
 INFLUX_FLUSH_INTERVAL = get_para("INFLUX_FLUSH_INTERVAL", int)
 INFLUX_JITTER_INTERVAL = get_para("INFLUX_JITTER_INTERVAL", int)
@@ -336,7 +336,7 @@ def on_message(mqttclient, userdata, message):
     else:
 
         # Calculating total rms
-        total_rms = round(
+        vib_total_rms = round(
             float(
                 math.sqrt(
                     vib_accel_tot_rms_x ** 2
@@ -348,7 +348,7 @@ def on_message(mqttclient, userdata, message):
         )
 
         # Anomaly detection of vib sensor
-        vib_sensor.check_if_anomaly(total_rms)
+        vib_sensor.check_if_anomaly(vib_total_rms)
         vib_sensor.calculate_anomaly_ratio(ANOMALY_LIST_SIZE)
 
         # Send data to InfluxDB
@@ -363,7 +363,7 @@ def on_message(mqttclient, userdata, message):
                 .field("vib_accel_rms_x", round(vib_accel_tot_rms_x, 4))
                 .field("vib_accel_rms_y", round(vib_accel_tot_rms_y, 4))
                 .field("vib_accel_rms_z", round(vib_accel_tot_rms_z, 4))
-                .field("vib_accel_rms_total", round(total_rms, 4))
+                .field("vib_accel_rms_total", round(vib_total_rms, 4))
                 .field("anomaly", int(vib_sensor.anomaly))
                 .field("avg_window", round(float(vib_sensor.model_avg), 4))
                 .field("std_window", round(float(vib_sensor.model_std_dev), 4))
@@ -374,7 +374,7 @@ def on_message(mqttclient, userdata, message):
             )
 
             with influx_client.write_api(write_options=write_options) as write_api:
-                write_api.write(INFLUX_PROCESS_DB, INFLUX_ORG, point)
+                write_api.write(INFLUX_BUCKET_NAME, INFLUX_ORG, point)
 
         except Exception as e:
             LOGGER.error(f"Send data to InfluxDB failed. Error code/reason: {e}")

@@ -1,11 +1,11 @@
 version: "3.9"
 services:
           
-# ===== Vibration acceleration monitoring ====
+# ===== Electrical anomaly analytics for one device====
 
- vib-accel-monitor:
-       container_name: VibAccelMonitor01
-       image: vib_accel_monitor_img:0.0.1
+ electrical-analytics1:
+       container_name: ElecDevice1
+       image: electrical_analytics_img:0.0.1
        restart: always
        #volumes:
               #- "/etc/timezone:/etc/timezone:ro"
@@ -24,19 +24,18 @@ services:
               INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
               INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
               INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
-              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
-              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+
               LINE_NAME: ${LINE_NAME}
-              MACHINE_NAME: "MACHINE_NAME"                                                        #Warrning ! Must be hard coded
-              SENSOR_NAME: "SENSOR_NAME"                                                          #Warrning ! Must be hard coded     
-              THRESH_STD_LIMIT: "THRESH_STD_LIMIT"                                                #Warrning ! Must be hard coded
+              MACHINE_NAME: "device01"   
+              DEVICE_NAME : "ElecDevice1"                                          
        labels:
               IoT.container.project: "IoT_Industrial"
+              
        networks:
               - IOT_Network
 
 networks:
        IOT_Network:
-              external: true
+          external: true
 
 

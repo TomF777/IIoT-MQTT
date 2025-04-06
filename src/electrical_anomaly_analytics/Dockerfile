@@ -12,7 +12,7 @@ RUN usermod -g localusers localuser
 
 ARG date
 
-#Create catalog for our app and copy file there
+#Create catalog for the app and copy files there
 RUN mkdir -p /src
 WORKDIR /src
 COPY /src /src
@@ -21,10 +21,10 @@ COPY /src /src
 RUN pip install --upgrade pip &&\
     pip3 install -r requirements.txt
 
-#Delete requirements after finished installation
+#Delete requirements after finished instalation
 RUN rm requirements.txt
 
-#Add privlage to /App to non-root user
+#Add privilage to app to non-root user
 RUN chown -R localuser /src
 USER localuser
 

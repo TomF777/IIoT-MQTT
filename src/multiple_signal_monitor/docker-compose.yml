@@ -23,7 +23,7 @@ services:
               INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
               INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
               INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
-              INFLUX_PROCESS_DB: ${INFLUX_PROCESS_DB}
+              INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
 
               LINE_NAME: ${LINE_NAME}
               MACHINE_NAME: "device01"                              #Warrning ! Must be hard coded                

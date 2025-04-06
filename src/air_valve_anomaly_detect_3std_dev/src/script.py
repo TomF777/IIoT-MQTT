@@ -99,7 +99,7 @@ LOGGER.info(f"MQTT_TOPIC value is: {MQTT_TOPIC}")
 
 INFLUX_HOST = get_para("INFLUX_HOST", str)
 INFLUX_PORT = get_para("INFLUX_PORT", str)
-INFLUX_PROCESS_DB = get_para("INFLUX_PROCESS_DB", str)
+INFLUX_BUCKET_NAME = get_para("INFLUX_BUCKET_NAME", str)  
 INFLUX_BATCH_SIZE = get_para("INFLUX_BATCH_SIZE", int)
 INFLUX_FLUSH_INTERVAL = get_para("INFLUX_FLUSH_INTERVAL", int)
 INFLUX_JITTER_INTERVAL = get_para("INFLUX_JITTER_INTERVAL", int)
@@ -117,7 +117,7 @@ MODEL_WINDOW_SIZE = get_para("MODEL_WINDOW_SIZE", int, default=100)
 #Number of anomaly point in list to calculate anomaly ratio
 ANOMALY_LIST_SIZE = get_para("ANOMALY_LIST_SIZE", int, default=100)
 
-# Anomaly 3 sigma detection class
+# Anomaly detection with +-3 std dev method
 class AnomalyDetection:
     """
         Analyse real-time data from sensor
@@ -130,8 +130,8 @@ class AnomalyDetection:
         anomaly             result if current data point is anomaly (1) or not (0)
         model_avg           avarage mean of `model_data`
         model_std_dev       standard deviation of `model_data`
-        u_thresh            calculated positive limit above which data is treated as anomaly
-        l_thresh            calculated negative limit below which data is treated as anomaly
+        u_thresh            calculated upper limit above which data is treated as anomaly
+        l_thresh            calculated lower limit below which data is treated as anomaly
         name                name of the object/sensor on which the algorithm is applied
 
     """
@@ -380,7 +380,7 @@ def on_message(mqttclient, userdata, message):
             )
 
             with influx_client.write_api(write_options=write_options) as write_api:
-                write_api.write(INFLUX_PROCESS_DB, INFLUX_ORG, point)
+                write_api.write(INFLUX_BUCKET_NAME, INFLUX_ORG, point)
         except Exception as e:
             LOGGER.error(f"Send data to InfluxDB failed. Error code/reason: {e}")
 

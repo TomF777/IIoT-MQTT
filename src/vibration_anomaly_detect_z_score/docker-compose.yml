@@ -3,9 +3,9 @@ services:
           
 # ===== Vibration acceleration monitoring ====
 
- vib-accel-monitor:
+ vib-accel-monitor01:
        container_name: VibAccelMonitor01
-       image: vib_accel_monitor_img:0.0.1
+       image: vib_anomaly_detect_z_score_img:0.0.1
        restart: always
        #volumes:
               #- "/etc/timezone:/etc/timezone:ro"
@@ -23,7 +23,7 @@ services:
               INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
               INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
               INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
-              INFLUX_PROCESS_DB: ${INFLUX_PROCESS_DB}
+              INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
               MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
               ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
               LINE_NAME: ${LINE_NAME}
