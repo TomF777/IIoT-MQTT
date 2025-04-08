@@ -17,7 +17,7 @@ import paho.mqtt.client as mqtt
 import influxdb_client
 from influxdb_client.client.write_api import WriteOptions
 from scipy.signal import find_peaks
-from helper import AnomalyDetection3StdDev, ElectricalAnalytics, get_params
+from helper import AnomalyDetectionZscore, ElectricalAnalytics, get_env_var
 
 # Set up logging configuration
 LOG_FORMAT = "%(levelname)s %(asctime)s \
@@ -31,80 +31,81 @@ logger = logging.getLogger(__name__)
 # Assignment const variable from env or created using env
 logger.info("Setting const global variables")
 
-LINE_NAME = get_params("LINE_NAME", str)
-MACHINE_NAME = get_params("MACHINE_NAME", str)
-DEVICE_NAME = get_params("DEVICE_NAME", str)
+LINE_NAME = get_env_var("LINE_NAME", str)
+MACHINE_NAME = get_env_var("MACHINE_NAME", str)
+DEVICE_NAME = get_env_var("DEVICE_NAME", str)
 
-MQTT_USERNAME = get_params("MQTT_USERNAME", str)
-MQTT_PASSWORD = get_params("MQTT_PASSWORD", str)
-MQTT_HOST = get_params("MQTT_HOST", str)
-MQTT_PORT = get_params("MQTT_PORT", int)
-MQTT_QOS = get_params("MQTT_QOS", int)
+MQTT_USERNAME = get_env_var("MQTT_USERNAME", str)
+MQTT_PASSWORD = get_env_var("MQTT_PASSWORD", str)
+MQTT_HOST = get_env_var("MQTT_HOST", str)
+MQTT_PORT = get_env_var("MQTT_PORT", int)
+MQTT_QOS = get_env_var("MQTT_QOS", int)
 MQTT_TOPIC = LINE_NAME + "/" + MACHINE_NAME + "/" + DEVICE_NAME
 logger.info(f"MQTT_TOPIC value is: {MQTT_TOPIC} ")
 
-INFLUX_HOST = get_params("INFLUX_HOST", str)
-INFLUX_PORT = get_params("INFLUX_PORT", str)
-INFLUX_BUCKET_NAME = get_params("INFLUX_BUCKET_NAME", str)
-INFLUX_BATCH_SIZE = get_params("INFLUX_BATCH_SIZE", int)
-INFLUX_FLUSH_INTERVAL = get_params("INFLUX_FLUSH_INTERVAL", int)
-INFLUX_JITTER_INTERVAL = get_params("INFLUX_JITTER_INTERVAL", int)
-INFLUX_ORG = get_params("INFLUX_ORG", str)
-INFLUX_TOKEN = get_params("INFLUX_TOKEN", str)
+INFLUX_HOST = get_env_var("INFLUX_HOST", str)
+INFLUX_PORT = get_env_var("INFLUX_PORT", str)
+INFLUX_BUCKET_NAME = get_env_var("INFLUX_BUCKET_NAME", str)
+INFLUX_BATCH_SIZE = get_env_var("INFLUX_BATCH_SIZE", int)
+INFLUX_FLUSH_INTERVAL = get_env_var("INFLUX_FLUSH_INTERVAL", int)
+INFLUX_JITTER_INTERVAL = get_env_var("INFLUX_JITTER_INTERVAL", int)
+INFLUX_ORG = get_env_var("INFLUX_ORG", str)
+INFLUX_TOKEN = get_env_var("INFLUX_TOKEN", str)
 INFLUX_URL = "http://" + INFLUX_HOST + ":" + INFLUX_PORT
 logger.info(f"INFLUX_URL value is:  {INFLUX_URL} ")
 
 # which current peak in a row should be taken into inrush current detection
-CURRENT_PEAK_NUMBER = get_params("CURRENT_PEAK_NUMBER", int, default=1)
+CURRENT_PEAK_NUMBER = get_env_var("CURRENT_PEAK_NUMBER", int, default=1)
 
 # electrical current threshold for peak detection algorithm
-CURRENT_PEAK_HEIGHT = get_params("CURRENT_PEAK_HEIGHT", float, default=1.0)
+CURRENT_PEAK_HEIGHT = get_env_var("CURRENT_PEAK_HEIGHT", float, default=1.0)
 
-# value used to calculate upper_threshold and lower_threshold when std dev is below set limit
-THRESH_STD_LIMIT =  get_params("THRESH_STD_LIMIT", int, default=20)
+#Threshold for z-score value. Point above this threshold is treated as anomaly
+Z_SCORE_THRESHOLD = get_env_var("Z_SCORE_THRESHOLD", float, default=2.0)
 
 # number of model points in a list to calculate anomaly
-MODEL_WINDOW_SIZE = get_params("MODEL_WINDOW_SIZE", int, default=25)
+MODEL_WINDOW_SIZE = get_env_var("MODEL_WINDOW_SIZE", int, default=25)
 
 # number of anomaly points in a list to calculate anomaly ratio
-ANOMALY_LIST_SIZE = get_params("ANOMALY_LIST_SIZE", int, default=25)
+ANOMALY_LIST_SIZE = get_env_var("ANOMALY_LIST_SIZE", int, default=25)
 
 electrical_analytics = ElectricalAnalytics()
 
-el_current_integr_ph1_anomaly = AnomalyDetection3StdDev("el_current_integr_ph1_anomaly",
+el_current_integr_ph1_analytics = AnomalyDetectionZscore("el_current_integr_ph1_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
-el_current_integr_ph2_anomaly = AnomalyDetection3StdDev("el_current_integr_ph2_anomaly",
+el_current_integr_ph2_analytics = AnomalyDetectionZscore("el_current_integr_ph2_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
-el_current_integr_ph3_anomaly = AnomalyDetection3StdDev("el_current_integr_ph3_anomaly",
+el_current_integr_ph3_analytics = AnomalyDetectionZscore("el_current_integr_ph3_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
-el_inrush_current_ph1_anomaly = AnomalyDetection3StdDev("el_inrush_current_ph1_anomaly",
+el_inrush_current_ph1_analytics = AnomalyDetectionZscore("el_inrush_current_ph1_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
-el_inrush_current_ph2_anomaly = AnomalyDetection3StdDev("el_inrush_current_ph2_anomaly",
+el_inrush_current_ph2_analytics = AnomalyDetectionZscore("el_inrush_current_ph2_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
-el_inrush_current_ph3_anomaly = AnomalyDetection3StdDev("el_inrush_current_ph3_anomaly",
+el_inrush_current_ph3_analytics = AnomalyDetectionZscore("el_inrush_current_ph3_analytics",
                                                     MODEL_WINDOW_SIZE,
                                                     ANOMALY_LIST_SIZE,
-                                                    THRESH_STD_LIMIT)
+                                                    logger)
 
 
 def calculate_integr_analytics(el_current_ph1_samples,
                                 el_current_ph2_samples,
-                                el_current_ph3_samples
+                                el_current_ph3_samples,
+                                z_threshold_integr
                                 ):
     """Calculate definite integral of electrical current samples """
 
@@ -112,13 +113,17 @@ def calculate_integr_analytics(el_current_ph1_samples,
     el_current_integr_ph2_total = el_current_ph2_samples.sum()
     el_current_integr_ph3_total = el_current_ph3_samples.sum()
 
-    el_current_integr_ph1_anomaly.check_if_anomaly(el_current_integr_ph1_total)
-    el_current_integr_ph2_anomaly.check_if_anomaly(el_current_integr_ph2_total)
-    el_current_integr_ph3_anomaly.check_if_anomaly(el_current_integr_ph3_total)
+    el_current_integr_ph1_analytics.z_score_thresh = z_threshold_integr
+    el_current_integr_ph2_analytics.z_score_thresh = z_threshold_integr
+    el_current_integr_ph3_analytics.z_score_thresh = z_threshold_integr
 
-    el_current_integr_ph1_anomaly.calculate_anomaly_ratio()
-    el_current_integr_ph2_anomaly.calculate_anomaly_ratio()
-    el_current_integr_ph3_anomaly.calculate_anomaly_ratio()
+    el_current_integr_ph1_analytics.check_if_anomaly(el_current_integr_ph1_total)
+    el_current_integr_ph2_analytics.check_if_anomaly(el_current_integr_ph2_total)
+    el_current_integr_ph3_analytics.check_if_anomaly(el_current_integr_ph3_total)
+
+    el_current_integr_ph1_analytics.calculate_anomaly_ratio()
+    el_current_integr_ph2_analytics.calculate_anomaly_ratio()
+    el_current_integr_ph3_analytics.calculate_anomaly_ratio()
     return el_current_integr_ph1_total, \
             el_current_integr_ph2_total, \
             el_current_integr_ph3_total
@@ -150,6 +155,7 @@ def calculate_el_current_assymetry(el_current_integr_ph1_total,
 def calculate_inrush_current_analytics(el_current_ph1_samples,
                                        el_current_ph2_samples,
                                        el_current_ph3_samples,
+                                       z_threshold_inrush,
                                        height_of_peak,
                                        peak_number):
     """
@@ -169,15 +175,18 @@ def calculate_inrush_current_analytics(el_current_ph1_samples,
     # Check if inrush current L1,L2,L3 is anomaly (first founded peak = inrush current)
     if len(el_current_peaks_ph1) > 0 and peak_number <= len(el_current_peaks_ph1):
         inrush_current_ph1 = el_current_ph1_samples[el_current_peaks_ph1[peak_number-1]]
-        el_inrush_current_ph1_anomaly.check_if_anomaly(inrush_current_ph1)
+        el_inrush_current_ph1_analytics.z_score_thresh = z_threshold_inrush
+        el_inrush_current_ph1_analytics.check_if_anomaly(inrush_current_ph1)
 
     if len(el_current_peaks_ph2) > 0 and peak_number <= len(el_current_peaks_ph2):
         inrush_current_ph2 = el_current_ph2_samples[el_current_peaks_ph2[peak_number-1]]
-        el_inrush_current_ph2_anomaly.check_if_anomaly(inrush_current_ph2)
+        el_inrush_current_ph2_analytics.z_score_thresh = z_threshold_inrush
+        el_inrush_current_ph2_analytics.check_if_anomaly(inrush_current_ph2)
 
     if len(el_current_peaks_ph3) > 0 and peak_number <= len(el_current_peaks_ph3):
         inrush_current_ph3 = el_current_ph3_samples[el_current_peaks_ph3[peak_number-1]]
-        el_inrush_current_ph3_anomaly.check_if_anomaly(inrush_current_ph3)
+        el_inrush_current_ph3_analytics.z_score_thresh = z_threshold_inrush
+        el_inrush_current_ph3_analytics.check_if_anomaly(inrush_current_ph3)
 
     try:
         return inrush_current_ph1, \
@@ -290,7 +299,8 @@ def on_message(mqttclient, userdata, message):
             electrical_analytics.el_current_integr_ph3_total = \
             calculate_integr_analytics(electrical_analytics.el_current_ph1_samples,
                                         electrical_analytics.el_current_ph2_samples,
-                                        electrical_analytics.el_current_ph3_samples
+                                        electrical_analytics.el_current_ph3_samples,
+                                        Z_SCORE_THRESHOLD
                         )
 
             # Calculate electrical current assymetry
@@ -308,6 +318,7 @@ def on_message(mqttclient, userdata, message):
                                         electrical_analytics.el_current_ph1_samples,
                                         electrical_analytics.el_current_ph2_samples,
                                         electrical_analytics.el_current_ph3_samples,
+                                        Z_SCORE_THRESHOLD,
                                         CURRENT_PEAK_HEIGHT,
                                         CURRENT_PEAK_NUMBER)
 
@@ -323,18 +334,21 @@ def on_message(mqttclient, userdata, message):
                     .field("el_current_integral_ph1", round(float(electrical_analytics.el_current_integr_ph1_total), 4))
                     .field("el_current_integral_ph2", round(float(electrical_analytics.el_current_integr_ph2_total), 4))
                     .field("el_current_integral_ph3", round(float(electrical_analytics.el_current_integr_ph3_total), 4))
-                    .field("el_current_integral_ph1_anomaly", int(el_current_integr_ph1_anomaly.anomaly))
-                    .field("el_current_integral_ph2_anomaly", int(el_current_integr_ph2_anomaly.anomaly))
-                    .field("el_current_integral_ph3_anomaly", int(el_current_integr_ph3_anomaly.anomaly))
-                    .field("el_current_integral_ph1_anomaly_ratio", round(float(el_current_integr_ph1_anomaly.anomaly_ratio), 4))
-                    .field("el_current_integral_ph2_anomaly_ratio", round(float(el_current_integr_ph2_anomaly.anomaly_ratio), 4))
-                    .field("el_current_integral_ph3_anomaly_ratio", round(float(el_current_integr_ph3_anomaly.anomaly_ratio), 4))
+                    .field("el_current_integral_ph1_anomaly", int(el_current_integr_ph1_analytics.anomaly))
+                    .field("el_current_integral_ph2_anomaly", int(el_current_integr_ph2_analytics.anomaly))
+                    .field("el_current_integral_ph3_anomaly", int(el_current_integr_ph3_analytics.anomaly))
+                    .field("el_current_integral_ph1_anomaly_ratio", round(float(el_current_integr_ph1_analytics.anomaly_ratio), 4))
+                    .field("el_current_integral_ph2_anomaly_ratio", round(float(el_current_integr_ph2_analytics.anomaly_ratio), 4))
+                    .field("el_current_integral_ph3_anomaly_ratio", round(float(el_current_integr_ph3_analytics.anomaly_ratio), 4))
                     .field("el_inrush_current_ph1", round(float(el_inrush_current_ph1), 4))
                     .field("el_inrush_current_ph2", round(float(el_inrush_current_ph2), 4))
                     .field("el_inrush_current_ph3", round(float(el_inrush_current_ph3), 4))
-                    .field("el_inrush_current_ph1_anomaly", int(el_inrush_current_ph1_anomaly.anomaly))
-                    .field("el_inrush_current_ph2_anomaly", int(el_inrush_current_ph2_anomaly.anomaly))
-                    .field("el_inrush_current_ph3_anomaly", int(el_inrush_current_ph3_anomaly.anomaly))
+                    .field("el_inrush_current_ph1_anomaly", int(el_inrush_current_ph1_analytics.anomaly))
+                    .field("el_inrush_current_ph2_anomaly", int(el_inrush_current_ph2_analytics.anomaly))
+                    .field("el_inrush_current_ph3_anomaly", int(el_inrush_current_ph3_analytics.anomaly))
+                    .field("el_inrush_current_ph1_anomaly_ratio", int(el_inrush_current_ph1_analytics.anomaly_ratio))
+                    .field("el_inrush_current_ph2_anomaly_ratio", int(el_inrush_current_ph2_analytics.anomaly_ratio))
+                    .field("el_inrush_current_ph3_anomaly_ratio", int(el_inrush_current_ph3_analytics.anomaly_ratio))
                     .time(time=datetime.fromtimestamp(int(mqtt_data["TimeStamp"]) / 1000, UTC),
                         write_precision='ms')
                 )

@@ -21,7 +21,7 @@ COPY /src /src
 RUN pip install --upgrade pip &&\
     pip3 install -r requirements.txt
 
-#Delete requirements after finish instaltion
+#Delete requirements after finished instalation
 RUN rm requirements.txt
 
 #Add privilage to app to non-root user

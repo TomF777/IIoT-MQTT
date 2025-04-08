@@ -1,7 +1,0 @@
-Dockerfile
-.env
-docker-compose.yml
-image
-build
-doc
-README.md

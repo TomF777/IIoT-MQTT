@@ -1,3 +1,16 @@
+"""
+Helper for script.py
+It inculdes :
+-'get_env_var' for reading environmental variables
+
+- class 'ElectricalAnalytics' which stores real-time samples
+of electrical current and calculated definite integral
+
+- class 'AnomalyDetectionZscore' which calculates anomalies
+in integral of electrical current samples over fixed time period
+and in electrical inrush current value in fixed time period
+"""
+
 import os
 import statistics
 import logging
@@ -5,14 +18,14 @@ import numpy as np
 
 helper_logger = logging.getLogger(__name__)
 
-def get_params(
-    env: str, req_type=None, default: str | int | float = None
+def get_env_var(
+    env_var: str, req_type=None, default: str | int | float = None
 ) -> str | int | float:
     """Read env variables and return its value with log information
 
     Args:
-        env (str): Name of enviromental variable
-        req_type (str, int, float): define which type shoud have returned env variable.
+        env_var (str): Name of enviromental variable
+        req_type (str, int, float): define which type shoud have returned env_var variable.
         default (str, int, float): will be returnet if is set and env variable does not exist
 
     Raises:
@@ -20,15 +33,15 @@ def get_params(
         SystemExit: Stop program if env does not exist and default is not set
         SystemExit: Stop program if cannot convert env variable to req_type
     """
-    # set local variable. Type and value of readed env variable
-    env_type = type(env)
-    env_val = os.getenv(env, None)
+    # set local variable. Type and value of read env variable
+    env_type = type(env_var)
+    env_val = os.getenv(env_var, None)
 
     # check if input convert type is correct or is None (if not, return error and stop program)
     allow_convert = [str, int, float]
     if req_type not in allow_convert and req_type is not None:
         helper_logger.error(
-            f"Cannot convert value of env {env} to {req_type}. \
+            f"Cannot convert value of env {env_var} to {req_type}. \
                 Allowed conversion type: str, int, float"
         )
         raise SystemExit
@@ -36,12 +49,12 @@ def get_params(
     # Return value of env variable
     if env_val is None and default is None:
         # env does not exist and we did not set default value
-        helper_logger.error(f"Env variable {env} does not exist")
+        helper_logger.error(f"Env variable {env_var} does not exist")
         raise SystemExit
     elif env_val is None:
         # env does not exist but return default (default is different than none)
         helper_logger.warning(
-            f"Env variable {env} does not exist, return default value: {default}"
+            f"Env variable {env_var} does not exist, return default value: {default}"
         )
         return default
     elif env_type is not req_type and req_type is not None:
@@ -49,17 +62,17 @@ def get_params(
         try:
             converted_env = req_type(env_val)
             helper_logger.info(
-                f"Env variable {env} value: {env_val}. Converted from {env_type} to {req_type}."
+                f"Env variable {env_var} value: {env_val}. Converted from {env_type} to {req_type}."
             )
             return converted_env
         except Exception as e:
             helper_logger.error(
-                f"Convert env variable {env} from {env_type} to {req_type} failed: {e}"
+                f"Convert env_var variable {env_var} from {env_type} to {req_type} failed: {e}"
             )
             raise SystemExit
     else:
         # env exist, is the same type (or we not set type) so we return it
-        helper_logger.info(f"Env variable {env} value: {env_val}, type: {env_type}")
+        helper_logger.info(f"Env variable {env_var} value: {env_val}, type: {env_type}")
         return env_val
 
 
@@ -105,32 +118,30 @@ class ElectricalAnalytics:
         return len(self.el_current_ph3_samples)
 
 
-class AnomalyDetection3StdDev:
+class AnomalyDetectionZscore:
     """
-        Analyse real-time data from sensor
-        and apply +-3 std dev algorithm to detect anomalies
+        Analyse real-time data from electrical device
+        and apply z-score algorithm to detect anomalies
+        in following electrical data:
+        - integral of electrical current samples over
+            fixed time period
+        - electrical inrush current value in fixed
+            time period 
 
-        model_data              list where real-time (non anomalous) data are stored
-        model_size              definition how many data points should be in `model_data`
-        anomaly_list            list with anomaly detection results (1 and 0)
-        anomaly_list_size       definition how many anomaly points should be in `anomaly_list`
-        anomaly_ratio           percentage of anomalous data in `anomaly_list`
-        anomaly                 result if current data point is anomaly (1) or not (0)
-        model_avg               avarage mean of `model_data`
-        model_std_dev           standard deviation of `model_data`
-        thresh_std_dev_limit    used to calculate up_threshold and lo_threshold
-                                    when std dev is below set limit
-        u_thresh                calculated positive limit above which data is treated as anomaly
-        l_thresh                calculated negative limit below which data is treated as anomaly
-        name                    name of the object/sensor on which the algorithm is applied
-
+        model_data          list where real-time (non anomalous) data are stored
+        model_size          definition how many data points should be in `model_data`
+        anomaly_list        list with anomaly detection results (1 and 0)
+        anomaly_ratio       percentage of anomalous data in `anomaly_list`
+        anomaly             result if current data point is anomaly (1) or not (0)
+        model_avg           avarage mean of `model_data`
+        model_std_dev       standard deviation of `model_data`
+        z_score             calculated z-score value for single sensor data
+        z_score_thresh      threshold above which sensor data is interpeted as anomalous
+        name                name of the object/sensor on which the algorithm is applied
     """
 
-    # Init function
-    def __init__(self, name: str,
-                 model_size: int,
-                 anomaly_list_size: int,
-                 thresh_std_dev_limit: float) -> None:
+
+    def __init__(self, name: str, model_size: int, anomaly_list_size: int, logger) -> None:
         self._model_data = []
         self._model_size = model_size
         self._anomaly_list = []
@@ -139,10 +150,10 @@ class AnomalyDetection3StdDev:
         self._anomaly = 0
         self._model_avg = 0.0
         self._model_std_dev = 0.0
-        self._thresh_std_dev_limit = thresh_std_dev_limit
-        self._u_thresh = 0.0
-        self._l_thresh = 0.0
+        self._z_score = 0.0
+        self._z_score_thresh = 0.0
         self._name = name
+        self.logger = logger
 
     # Read only wariables
     @property
@@ -151,17 +162,22 @@ class AnomalyDetection3StdDev:
         return self._anomaly
 
     @property
-    def model_avg(self):
+    def model_avg(self) -> float:
         """return Mean of sensor data from given data model"""
         return self._model_avg
 
     @property
-    def model_std_dev(self):
+    def model_std_dev(self) -> float:
         """return Std Dev of sensor data from given data model"""
         return self._model_std_dev
 
     @property
-    def anomaly_ratio(self):
+    def z_score(self) -> float:
+        """return calculated z-score value for given sensor data point"""
+        return self._z_score
+
+    @property
+    def anomaly_ratio(self) -> float:
         """return anomaly ratio in real-time data"""
         return self._anomaly_ratio
 
@@ -169,6 +185,20 @@ class AnomalyDetection3StdDev:
     def model_completeness(self) -> int:
         """return percentage of data model"""
         return int(100 * len(self._model_data) / self._model_size)
+
+    @property
+    def z_score_thresh(self) -> float:
+        """return z-score threshold value"""
+        return self._z_score_thresh
+
+    # setter for z-score threshold value
+    @z_score_thresh.setter
+    def z_score_thresh(self, z_score_threshold: float):
+        if z_score_threshold == 0:
+            self.logger.error("Z-score threshold must be above zero")
+            self._z_score_thresh = 2.0
+        else:
+            self._z_score_thresh = z_score_threshold
 
     def reset_algorithm(self) -> bool:
         """Reset data model in algorithm"""
@@ -179,80 +209,70 @@ class AnomalyDetection3StdDev:
         self._anomaly = 0
         self._model_avg = 0.0
         self._model_std_dev = 0.0
-        return True
+        self._z_score = 0.0
 
     def is_model_complete(self) -> bool:
         """Return True if data model has enough data points"""
         return True if len(self._model_data) == self._model_size else False
 
-
     def calculate_anomaly_ratio(self):
-        """Sum all anomalies results (0 and 1) from `anomaly_list`
+        """
+        Sum all anomalies results (0 and 1) from `anomaly_list`
            and divide it by the size of the list
 
+        Args:
+            anomaly_list_size (int): size of anomaly list to calculate ratio
         """
+
         try:
-            if not self.is_model_complete():
-                pass
-            elif len(self._anomaly_list) < self._anomaly_list_size:
-                self._anomaly_list.append(self._anomaly)
-            else:
-                self._anomaly_list.pop(0)
-                self._anomaly_list.append(self._anomaly)
-                self._anomaly_ratio = round(sum(self._anomaly_list) / self._anomaly_list_size, 3)
+            if self.is_model_complete():
+                if len(self._anomaly_list) < self._anomaly_list_size:
+                    self._anomaly_list.append(self._anomaly)
+                else:
+                    self._anomaly_list.pop(0)
+                    self._anomaly_list.append(self._anomaly)
+                    self._anomaly_ratio = round(sum(self._anomaly_list) / self._anomaly_list_size, 3)
         except Exception as e:
-            helper_logger.error(
-                f"Calculation anomaly ratio of model {self._name} failed. \
-                  Error code/reason: {e}"
+            self.logger.error(
+                f"Calculation `anomaly ratio of model` {self._name} failed. Error code/reason: {e}"
             )
 
-    def check_if_anomaly(self, value, limit: int = 0):
-        """ +- 3 * std dev algorithm to check if argument value is anomaly or not.
+    def check_if_anomaly(self, value: float):
+        """Z-score algorithm to check if argument value is anomaly or not.
 
         Args:
-            value (any): input value to evaluate by algorithm
-
-            limit (int): limit to avoid get to small u_thresh and l_thresh.
-            Example: if input value is a time, and std dev is lower
-                than data time resolution all next data points will be anomalous.
+            value (any): input value (sensor data) to be evaluated by algorithm
         """
 
         try:
             if self.is_model_complete():
                 # recalculate the avg and std dev using only data points which are not anomaly
-                self._model_avg = statistics.mean(self._model_data)
-                self._model_std_dev = statistics.stdev(self._model_data)
+                self._model_avg = abs(statistics.mean(self._model_data))
+                self._model_std_dev = abs(statistics.stdev(self._model_data))
+                # avoid division by zero
+                if self._model_std_dev == 0:
+                    self._model_std_dev = 0.001
+                
+                self._z_score = round((abs(value) - self._model_avg) / self._model_std_dev, 4)
 
-                # calculate low and high limit
-                if self._model_std_dev < limit and limit > 0:
-                    # protect system to avoid situation when std dev lower then resolution time
-                    self._u_thresh = self._model_avg + self._thresh_std_dev_limit
-                    self._l_thresh = self._model_avg - self._thresh_std_dev_limit
+                # Check if new point is beyond z-score threshold i.e. this is anomaly
+                if abs(self._z_score) > self._z_score_thresh:
+                    # If anomaly, do not add to the model_data
+                    self._anomaly = 1
                 else:
-                    # Use +- 3 std dev method to calculate low and high limit
-                    self._u_thresh = self._model_avg + 3 * self._model_std_dev
-                    self._l_thresh = self._model_avg - 3 * self._model_std_dev
-
-                # Check if new point is anomaly (is out of limit)
-                if self._l_thresh <= value <= self._u_thresh:
-                    # Point is not anomaly, remove oldest point
-                    # from model and add new one at the end
+                    # If not anomaly, add this point to data model
+                    # and delete the 1st point (moving window)
                     self._model_data.pop(0)
                     self._model_data.append(value)
                     self._anomaly = 0
-                else:
-                    # If anomaly, do not add to the model_data
-                    self._anomaly = 1
 
             else:
                 # build data model by appending incoming sensor data to the list `model_data`
                 self._model_data.append(value)
 
         except Exception as e:
-            helper_logger.error(
-                f'Calculation anomaly of model "{self._name}" failed. Error code/reason: {e}'
+            self.logger.error(
+                f'Calculation `anomaly of model` "{self._name}" failed. Error code/reason: {e}'
             )
 
 
-class AnomalyDetectionZscore:
-    pass

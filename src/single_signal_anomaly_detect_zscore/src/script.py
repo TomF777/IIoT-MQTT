@@ -1,6 +1,12 @@
 """
-Script reads acceleration data from vibration sensor over mqtt,
-calculates anomalies using z-score method and send results to InfluxDB
+    Catch data over mqtt from single sensor,
+    apply z-score anomaly detection algorithm
+    on its value and store the results
+    and timestamp into InfluxDB.
+    The script subscribes to 
+    MachineName/LineName/SensorName topic level and
+    expects that sensor json data has 
+    SensorName and SensorValue fields.
 """
 import os
 import json
@@ -13,6 +19,7 @@ import influxdb_client
 from influxdb_client.client.write_api import WriteOptions
 
 
+
 # Set loging system
 LOG_FORMAT = "%(levelname)s %(asctime)s \
     Function: %(funcName)s \
@@ -20,7 +27,6 @@ LOG_FORMAT = "%(levelname)s %(asctime)s \
     Message: %(message)s"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logger = logging.getLogger(__name__)
-
 
 def get_env_var(
     env_var: str, req_type=None, default: str | int | float = None
@@ -81,7 +87,6 @@ def get_env_var(
 
 
 
-# Assignment const variable from env var or created using env var
 logger.info("Seting const global variables")
 
 LINE_NAME = get_env_var("LINE_NAME", str)
@@ -107,14 +112,14 @@ INFLUX_TOKEN = get_env_var("INFLUX_TOKEN", str)
 INFLUX_URL = "http://" + INFLUX_HOST + ":" + INFLUX_PORT
 logger.info(f"INFLUX_URL value is:  {INFLUX_URL} ")
 
-#Threshold for z-score value. Point above this threshold is treated as anomaly
+# Threshold for z-score value. Point above this threshold is treated as anomaly
 Z_SCORE_THRESHOLD = get_env_var("Z_SCORE_THRESHOLD", float, default=2.0)
 
-#Number of model points in list to calculate anomaly
-MODEL_WINDOW_SIZE = get_env_var("MODEL_WINDOW_SIZE", int, default=100)
+# Number of model points in list to calculate anomaly
+MODEL_WINDOW_SIZE = get_env_var("MODEL_WINDOW_SIZE", int, default=50)
 
-#Number of anomaly point in list to calculate anomaly ration
-ANOMALY_LIST_SIZE = get_env_var("ANOMALY_LIST_SIZE", int, default=100)
+# Number of anomaly point in list to calculate anomaly ration
+ANOMALY_LIST_SIZE = get_env_var("ANOMALY_LIST_SIZE", int, default=50)
 
 
 class AnomalyDetectionZscore:
@@ -280,6 +285,7 @@ def on_connect(mqttclient, userdata, flags, rc, properties):
         userdata:  the private user data as set in Client() or userdata_set()
         flags: response flags sent by the broker
         rc: the connection result code
+        properties: properties
     """
     if rc == 0:
         logger.info("Connection to MQTT Broker sucesfull. Result Code: 0")
@@ -293,36 +299,38 @@ def on_connect(mqttclient, userdata, flags, rc, properties):
         )
     elif rc == 3:
         logger.warning(
-            "Connection to MQTT Broker refused – server unavailable. Result Code: 3"
+            "Connection to MQTT Broker refused - server unavailable. Result Code: 3"
         )
     elif rc == 4:
         logger.warning(
-            "Connection to MQTT Broker refused – bad username or password. Result Code: 4"
+            "Connection to MQTT Broker refused - bad username or password. Result Code: 4"
         )
     elif rc == 5:
         logger.warning(
-            "Connection to MQTT Broker refused – not authorised. Result Code: 5"
+            "Connection to MQTT Broker refused - not authorised. Result Code: 5"
         )
     else:
         logger.warning(f"Conection problem (unknown result code). Result Code: {rc}")
 
 
-def on_disconnect(mqttclient, userdata, rc, properties):
+
+def on_disconnect(mqttclient, userdata, flags, rc, properties):
     """Method triggered by mqtt on disconnect callback and log information about lost connection
 
     Args:
         mqttclient: the client instance for this callback
         userdata:  the private user data as set in Client() or userdata_set()
         rc: the connection result code
+        properties: properties
     """
     logger.info(f"Lost conection with MQTT Broker. Result Code: {rc}")
 
 
+
 def on_message(mqttclient, userdata, message):
-    """Method triggered when data apear on mqtt topic. Method is responisble for:
-        1. Read acceleration data from mqtt broker
-        2. Detect anomalys of total rms
-        2. Send data to InfluxDB
+    """ Method called when data catched on mqtt topic.
+        It reads payload sent over mqtt and
+        store its content as line protocol into InfluxDB
 
     Args:
         mqttclient: the client instance for this callback
@@ -335,71 +343,53 @@ def on_message(mqttclient, userdata, message):
 
     try:
         sensor_name = mqtt_data["SensorName"]
-        vib_accel_tot_rms_x = float(mqtt_data["VibAccelTotRmsX"])
-        vib_accel_tot_rms_y = float(mqtt_data["VibAccelTotRmsY"])
-        vib_accel_tot_rms_z = float(mqtt_data["VibAccelTotRmsZ"])
+        sensor_value = mqtt_data["SensorValue"]
+        logger.info(f"sensor name: {sensor_name}  sensor value: {sensor_value}")
     except Exception as e:
         logger.error("No valid sensor data in json included")
     else:
 
-        # Calculating total rms
-        vib_total_rms = round(
-            float(
-                math.sqrt(
-                    vib_accel_tot_rms_x ** 2
-                    + vib_accel_tot_rms_y ** 2
-                    + vib_accel_tot_rms_z ** 2
-                )
-            ),
-            5,
-        )
+        # apply z-score algorithm on received data
+        sensor_analytics.z_score_thresh = Z_SCORE_THRESHOLD
+        sensor_analytics.check_if_anomaly(sensor_value)
+        sensor_analytics.calculate_anomaly_ratio()
 
-    # Anomaly detection of vibration sensor
-    vib_sensor_analytics.z_score_thresh = Z_SCORE_THRESHOLD
-    vib_sensor_analytics.check_if_anomaly(vib_total_rms)
-    vib_sensor_analytics.calculate_anomaly_ratio()
 
-    # Send data to InfluxDB
-    try:
-        measurement = ("VibSensor")
-
-        point = (
-            influxdb_client.Point(measurement)
-            .tag("line_name", str(mqtt_data["LineName"]))
-            .tag("machine_name", str(mqtt_data["MachineName"]))
-            .tag("sensor_name", sensor_name)
-            .field("vib_accel_rms_x", round(vib_accel_tot_rms_x, 4))
-            .field("vib_accel_rms_y", round(vib_accel_tot_rms_y, 4))
-            .field("vib_accel_rms_z", round(vib_accel_tot_rms_z, 4))
-            .field("vib_accel_rms_total", round(vib_total_rms, 4))
-            .field("anomaly", int(vib_sensor_analytics.anomaly))
-            .field("anomaly_ratio", round(float(vib_sensor_analytics.anomaly_ratio), 4))
-            .field("model_avg", round(float(vib_sensor_analytics.model_avg), 4))
-            .field("z_score", round(float(vib_sensor_analytics.z_score), 4))
-            .field("z_score_thresh", round(float(vib_sensor_analytics.z_score_thresh), 4))
-            .time(
-                time=datetime.fromtimestamp(int(mqtt_data["TimeStamp"]) / 1000, UTC),
-                write_precision="ms",
+        # Send data to InfluxDB
+        try:
+            measurement = ("SingleSensorAnalytics")
+            point = (
+                influxdb_client.Point(measurement)
+                .tag("line_name", str(mqtt_data["LineName"]))
+                .tag("machine_name", str(mqtt_data["MachineName"]))
+                .tag("sensor_name", str(mqtt_data["SensorName"]))
+                .field("value", float(round(mqtt_data["SensorValue"], 4)))
+                .field("anomaly", int(sensor_analytics.anomaly))
+                .field("anomaly_ratio", round(float(sensor_analytics.anomaly_ratio), 4))
+                .field("model_avg", round(float(sensor_analytics.model_avg), 4))
+                .field("z_score", round(float(sensor_analytics.z_score), 4))
+                .field("z_score_thresh", round(float(sensor_analytics.z_score_thresh), 4))
+                .time(time=datetime.fromtimestamp(int(mqtt_data["TimeStamp"]) / 1000, UTC),
+                    write_precision='ms')
             )
-        )
 
-        with influx_client.write_api(write_options=write_options) as write_api:
-            write_api.write(INFLUX_BUCKET_NAME, INFLUX_ORG, point)
+            with influx_client.write_api(write_options=write_options) as write_api:
+                write_api.write(INFLUX_BUCKET_NAME, INFLUX_ORG, point)
 
-    except Exception as e:
-        logger.error(f"Send data to InfluxDB failed. Error code/reason: {e}")
+        except Exception as e:
+            logger.error(f"Send data to InfluxDB failed. Error code/reason: {e}")
 
 
 # Main function of script
 if __name__ == "__main__":
 
-    # Creating vibration sensor anomaly object
-    vib_sensor_analytics = AnomalyDetectionZscore("vibration_analytics", 
+    # Create sensor anomaly object
+    sensor_analytics = AnomalyDetectionZscore("sensor_analytics", 
                                         MODEL_WINDOW_SIZE, 
                                         ANOMALY_LIST_SIZE, 
                                         logger)
 
-    # Configuring conection with InfluxDB database
+    # Configuring connection with InfluxDB database
     try:
         logger.info("Configuring InfluxDB client ")
         influx_client = influxdb_client.InfluxDBClient(
@@ -408,9 +398,9 @@ if __name__ == "__main__":
 
         logger.info("Configuring InfluxDB write api")
         write_options = WriteOptions(batch_size=INFLUX_BATCH_SIZE,
-                                     flush_interval=INFLUX_FLUSH_INTERVAL,
-                                     jitter_interval=INFLUX_JITTER_INTERVAL,
-                                     retry_interval=1000)
+                                    flush_interval=INFLUX_FLUSH_INTERVAL,
+                                    jitter_interval=INFLUX_JITTER_INTERVAL,
+                                    retry_interval=1000)
 
     except Exception as e:
         logger.error(f"Configuring InfluxDB failed. Error code/reason: {e}")
