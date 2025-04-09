@@ -57,7 +57,7 @@ docker compose -p "iot-project" -f ../global.yml up -d
 
 
 ######################################################
-title  "!!!!! Deploy completed !!!!!"
+echo  "!!!!! Deploy completed !!!!!"
 
 sleep 1s
 

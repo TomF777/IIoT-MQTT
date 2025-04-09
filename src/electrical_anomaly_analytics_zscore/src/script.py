@@ -177,16 +177,19 @@ def calculate_inrush_current_analytics(el_current_ph1_samples,
         inrush_current_ph1 = el_current_ph1_samples[el_current_peaks_ph1[peak_number-1]]
         el_inrush_current_ph1_analytics.z_score_thresh = z_threshold_inrush
         el_inrush_current_ph1_analytics.check_if_anomaly(inrush_current_ph1)
+        el_inrush_current_ph1_analytics.calculate_anomaly_ratio()
 
     if len(el_current_peaks_ph2) > 0 and peak_number <= len(el_current_peaks_ph2):
         inrush_current_ph2 = el_current_ph2_samples[el_current_peaks_ph2[peak_number-1]]
         el_inrush_current_ph2_analytics.z_score_thresh = z_threshold_inrush
         el_inrush_current_ph2_analytics.check_if_anomaly(inrush_current_ph2)
+        el_inrush_current_ph2_analytics.calculate_anomaly_ratio()
 
     if len(el_current_peaks_ph3) > 0 and peak_number <= len(el_current_peaks_ph3):
         inrush_current_ph3 = el_current_ph3_samples[el_current_peaks_ph3[peak_number-1]]
         el_inrush_current_ph3_analytics.z_score_thresh = z_threshold_inrush
         el_inrush_current_ph3_analytics.check_if_anomaly(inrush_current_ph3)
+        el_inrush_current_ph3_analytics.calculate_anomaly_ratio()
 
     try:
         return inrush_current_ph1, \
@@ -334,6 +337,13 @@ def on_message(mqttclient, userdata, message):
                     .field("el_current_integral_ph1", round(float(electrical_analytics.el_current_integr_ph1_total), 4))
                     .field("el_current_integral_ph2", round(float(electrical_analytics.el_current_integr_ph2_total), 4))
                     .field("el_current_integral_ph3", round(float(electrical_analytics.el_current_integr_ph3_total), 4))
+                    .field("el_current_integral_ph1_z_score", round(float(el_current_integr_ph1_analytics.z_score), 4))
+                    .field("el_current_integral_ph1_z_score_thresh", round(float(el_current_integr_ph1_analytics.z_score_thresh), 4))
+                    .field("el_current_integral_ph2_z_score", round(float(el_current_integr_ph2_analytics.z_score), 4))
+                    .field("el_current_integral_ph2_z_score_thresh", round(float(el_current_integr_ph2_analytics.z_score_thresh), 4))
+                    .field("el_current_integral_ph3_z_score", round(float(el_current_integr_ph3_analytics.z_score), 4))
+                    .field("el_current_integral_ph3_z_score_thresh", round(float(el_current_integr_ph3_analytics.z_score_thresh), 4))
+                    
                     .field("el_current_integral_ph1_anomaly", int(el_current_integr_ph1_analytics.anomaly))
                     .field("el_current_integral_ph2_anomaly", int(el_current_integr_ph2_analytics.anomaly))
                     .field("el_current_integral_ph3_anomaly", int(el_current_integr_ph3_analytics.anomaly))
@@ -346,9 +356,9 @@ def on_message(mqttclient, userdata, message):
                     .field("el_inrush_current_ph1_anomaly", int(el_inrush_current_ph1_analytics.anomaly))
                     .field("el_inrush_current_ph2_anomaly", int(el_inrush_current_ph2_analytics.anomaly))
                     .field("el_inrush_current_ph3_anomaly", int(el_inrush_current_ph3_analytics.anomaly))
-                    .field("el_inrush_current_ph1_anomaly_ratio", int(el_inrush_current_ph1_analytics.anomaly_ratio))
-                    .field("el_inrush_current_ph2_anomaly_ratio", int(el_inrush_current_ph2_analytics.anomaly_ratio))
-                    .field("el_inrush_current_ph3_anomaly_ratio", int(el_inrush_current_ph3_analytics.anomaly_ratio))
+                    .field("el_inrush_current_ph1_anomaly_ratio", round(float(el_inrush_current_ph1_analytics.anomaly_ratio), 4))
+                    .field("el_inrush_current_ph2_anomaly_ratio", round(float(el_inrush_current_ph2_analytics.anomaly_ratio), 4))
+                    .field("el_inrush_current_ph3_anomaly_ratio", round(float(el_inrush_current_ph3_analytics.anomaly_ratio), 4))
                     .time(time=datetime.fromtimestamp(int(mqtt_data["TimeStamp"]) / 1000, UTC),
                         write_precision='ms')
                 )
