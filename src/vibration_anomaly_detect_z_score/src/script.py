@@ -1,6 +1,6 @@
 """
-Script reads acceleration data from vibration sensor over mqtt,
-calculates anomalies using z-score method and send results to InfluxDB
+Script reads acceleration data from vibration sensor over MQTT,
+calculates anomalies using z-score method and stores results in InfluxDB
 """
 import os
 import json
