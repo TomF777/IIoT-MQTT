@@ -4,7 +4,7 @@ services:
 #=========== Generic multiple sensor monitoring =====
  generic-multiple-sensors:
       container_name: Sensors
-      image: generic_multiple_signal_monitor_img:0.0.1
+      image: generic_multiple_signal_monitor_mqtt_img:0.0.1
       restart: always
       volumes:
             - "/etc/timezone:/etc/timezone:ro"
@@ -22,7 +22,7 @@ services:
 
  sensor01-anomaly-detect:
        container_name: Sensor01-Anomaly
-       image: single_signal_anomaly_detect_zscore_img:0.0.1
+       image: single_signal_anomaly_detect_zscore_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -48,7 +48,7 @@ services:
 
  generic-multiple-state:
        container_name: States
-       image: generic_multiple_state_monitor_img:0.0.1
+       image: generic_multiple_state_monitor_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -70,7 +70,7 @@ services:
 
  vib-accel-monitor-01:
        container_name: VibAccelMonitor01
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -94,7 +94,7 @@ services:
 
  vib-accel-monitor-02:
        container_name: VibAccelMonitor02
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -118,7 +118,7 @@ services:
 
  vib-accel-monitor-03:
        container_name: VibAccelMonitor03
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -142,7 +142,7 @@ services:
 
  vib-accel-monitor-04:
        container_name: VibAccelMonitor04
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -166,7 +166,7 @@ services:
 
  vib-accel-monitor-05:
        container_name: VibAccelMonitor05
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -190,7 +190,7 @@ services:
 
  vib-accel-monitor-06:
        container_name: VibAccelMonitor06
-       image: vib_anomaly_detect_z_score_img:0.0.1
+       image: vib_anomaly_detect_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -218,7 +218,7 @@ services:
 
  air-valve-monitor-01:
        container_name: AirValveMonitor01
-       image: air_valve_zscore_img:0.0.1
+       image: air_valve_zscore_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -241,7 +241,7 @@ services:
 
  air-valve-monitor-02:
        container_name: AirValveMonitor02
-       image: air_valve_zscore_img:0.0.1
+       image: air_valve_zscore_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -264,7 +264,7 @@ services:
 
  air-valve-monitor-03:
        container_name: AirValveMonitor03
-       image: air_valve_zscore_img:0.0.1
+       image: air_valve_zscore_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -287,7 +287,7 @@ services:
 
  air-valve-monitor-04:
        container_name: AirValveMonitor04
-       image: air_valve_zscore_img:0.0.1
+       image: air_valve_zscore_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"
@@ -312,7 +312,7 @@ services:
 
  electrical-analytics1:
        container_name: ElecDevice1
-       image: electrical_analytics_z_score_img:0.0.1
+       image: electrical_analytics_z_score_mqtt_img:0.0.1
        restart: always
        volumes:
               - "/etc/timezone:/etc/timezone:ro"

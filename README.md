@@ -9,8 +9,9 @@ IIoT project for data exchange between PLC in OT and IT area with usage of MQTT 
 #### General Overview
 Using this framework it's possible to collect data from different sensors, PLCs and devices in OT area. The collected data are preprocessed in Beckhoff IPC, converted into JSON payload and published with MQTT into IT area.
 
-In IT area, there are couple of containerized  applications which runs using Docker (Docker-Compose).
-Python apps subscribe to MQTT data and perform analytics, anomaly detection in sensor signals and finally save the results in time series data base InfluxDB. The graphical results are visible as dashboards in Grafana.
+In IT area, there are couple of containerized  applications which run using Docker (Docker-Compose) and Portainer.
+Python apps (as opc ua clients) request data from Bechkoff IPC (as opc ua server) and perform analytics, anomaly detection in sensor signals and finally save the results in time series database InfluxDB. 
+The graphical results are visible as dashboards in Grafana.
 
 
 #### Detailed description:
@@ -20,8 +21,8 @@ Folder `apps` includes:
 
 `global` is the main component which runs Eclipse Mosquitto Mqtt Broker, InfluxdB, Grafana, Portainer - all of them as Docker containers. This stack should always be in operation.
 
-`industrial_line1` starts multiple Python apps as Docker containers. Some Python applications are quite simple and just catch mqtt data and ingest them in proper format into InfluxDB. Other are more complex and include anomaly detection (z-score method) on sensor signals. 
-This stack should be launched after `global` is fully deployed.
+`industrial_line1`  - multiple Python apps as Docker containers. Some Python applications are quite simple and just poll OPC UA data and ingest them directly in proper format into InfluxDB. Other are more complex and include anomaly detection (z-score method) on sensor signals.
+The file `industrial_line.yml` for docker-compose can be composed of many single entries for each Python app. Respective `docker-compose` config for each Python app can be found in folder  `/src/subfolder_for_python_app` 
 
 Folder `apps_data` are persistance configs and data from Grafana, InfluxDB, Mqtt Broker, Portainer and Prometheus. These are mounted as Docker bind mounts.
 
@@ -57,6 +58,6 @@ cd /apps/industrial_line1/build
 bash compose_start.sh
 ```
 
-In the meantine IPC Beckhoff should also run to publish MQTT messages. For test purposes `mqtt-simulator-main` can be used (no Docker container)
+The IPC Beckhoff should also be running and expose OPC UA data. For test purposes `mqtt-simulator-main` can be used (no Docker container)
 
 
