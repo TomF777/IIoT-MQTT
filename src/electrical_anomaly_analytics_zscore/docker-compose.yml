@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+          
+# ===== Electrical anomaly analytics for one device====
+
+ electrical-analytics1:
+       container_name: ElecDevice1
+       image: electrical_analytics_img:0.0.1
+       restart: always
+       #volumes:
+              #- "/etc/timezone:/etc/timezone:ro"
+              #- "/etc/localtime:/etc/localtime:ro"
+       environment:
+              MQTT_USERNAME: ${MQTT_USERNAME}
+              MQTT_PASSWORD: ${MQTT_PASSWORD}
+              MQTT_HOST: ${MQTT_HOST}
+              MQTT_PORT: ${MQTT_PORT}
+              MQTT_QOS: ${MQTT_QOS}
+              INFLUX_HOST: ${INFLUX_HOST}
+              INFLUX_PORT: ${INFLUX_PORT} 
+              INFLUX_ORG: ${INFLUX_ORG}
+              INFLUX_TOKEN: ${INFLUX_TOKEN}
+              INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
+              INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
+              INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
+              INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
+
+              LINE_NAME: ${LINE_NAME}
+              MACHINE_NAME: "device01"   
+              DEVICE_NAME : "ElecDevice1"                                          
+       labels:
+              IoT.container.project: "IoT_Industrial"
+              
+       networks:
+              - IOT_Network
+
+networks:
+       IOT_Network:
+          external: true
+
+

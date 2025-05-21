@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+          
+# ===== Vibration acceleration monitoring ====
+
+ vib-accel-monitor01:
+       container_name: VibAccelMonitor01
+       image: vib_anomaly_detect_z_score_img:0.0.1
+       restart: always
+       #volumes:
+              #- "/etc/timezone:/etc/timezone:ro"
+              #- "/etc/localtime:/etc/localtime:ro"
+       environment:
+              MQTT_USERNAME: ${MQTT_USERNAME}
+              MQTT_PASSWORD: ${MQTT_PASSWORD}
+              MQTT_HOST: ${MQTT_HOST}
+              MQTT_PORT: ${MQTT_PORT}
+              MQTT_QOS: ${MQTT_QOS}
+              INFLUX_HOST: ${INFLUX_HOST}
+              INFLUX_PORT: ${INFLUX_PORT} 
+              INFLUX_ORG: ${INFLUX_ORG}
+              INFLUX_TOKEN: ${INFLUX_TOKEN}
+              INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
+              INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
+              INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
+              INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
+              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}
+              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}
+              LINE_NAME: ${LINE_NAME}
+              MACHINE_NAME: "MACHINE_NAME"                                                        #Warrning ! Must be hard coded
+              SENSOR_NAME: "SENSOR_NAME"                                                          #Warrning ! Must be hard coded     
+              Z_SCORE_THRESHOLD: "Z_SCORE_THRESHOLD"                                              #Warrning ! Must be hard coded
+       labels:
+              IoT.container.project: "IoT_Industrial"
+       networks:
+              - IOT_Network
+
+networks:
+       IOT_Network:
+              external: true
+
+

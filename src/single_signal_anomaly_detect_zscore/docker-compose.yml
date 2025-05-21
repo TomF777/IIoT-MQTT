@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+          
+# ===== Single generic sensor anomaly detection  ====
+
+ sensor01-anomaly-detect:
+       container_name: Sensor01-Anomaly
+       image: single_signal_anomaly_detect_zscore_img:0.0.1
+       restart: always
+       volumes:
+              - "/etc/timezone:/etc/timezone:ro"
+              - "/etc/localtime:/etc/localtime:ro"
+       environment:
+              MQTT_USERNAME: ${MQTT_USERNAME}
+              MQTT_PASSWORD: ${MQTT_PASSWORD}
+              MQTT_HOST: ${MQTT_HOST}
+              MQTT_PORT: ${MQTT_PORT}
+              MQTT_QOS: ${MQTT_QOS}
+              INFLUX_HOST: ${INFLUX_HOST}
+              INFLUX_PORT: ${INFLUX_PORT} 
+              INFLUX_ORG: ${INFLUX_ORG}
+              INFLUX_TOKEN: ${INFLUX_TOKEN}
+              INFLUX_BATCH_SIZE: ${INFLUX_BATCH_SIZE}
+              INFLUX_FLUSH_INTERVAL: ${INFLUX_FLUSH_INTERVAL}
+              INFLUX_JITTER_INTERVAL: ${INFLUX_JITTER_INTERVAL}
+              INFLUX_BUCKET_NAME: ${INFLUX_PROCESS_DB}
+
+              LINE_NAME: ${LINE_NAME}
+              MACHINE_NAME: "MACHINE_NAME"                              # Must be hard coded
+              SENSOR_NAME: "Sensor01"                                   # Must be hard coded
+              MODEL_WINDOW_SIZE: ${MODEL_WINDOW_SIZE}                   # Must be hard coded
+              ANOMALY_LIST_SIZE: ${ANOMALY_LIST_SIZE}                   # Must be hard coded
+              Z_SCORE_THRESHOLD: "Z_SCORE_THRESHOLD"                    # Must be hard coded
+       labels:
+              IoT.container.project: "IoT_Industrial"
+              
+       networks:
+              - IOT_Network
+
+networks:
+       IOT_Network:
+          external: true
+
+
