@@ -1,4 +1,4 @@
-# IIoT Real-Time Analytics using Python, MQTT and Beckhoff IPC....
+# IIoT Real-Time Analytics using Python, MQTT and Beckhoff IPC.
 
 
 IIoT project for data exchange between PLC in OT and IT area with usage of MQTT protocol.  
