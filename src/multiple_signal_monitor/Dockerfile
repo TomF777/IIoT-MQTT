@@ -1,4 +1,4 @@
-FROM python:3.12.9-slim
+FROM python:3.13.8-slim
 
 #Set env variable
 ENV LANG=en_US.UTF-8
