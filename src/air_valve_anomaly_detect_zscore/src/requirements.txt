@@ -1,3 +1,4 @@
 influxdb-client==1.36.0
 paho-mqtt==2.1.0
 
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
